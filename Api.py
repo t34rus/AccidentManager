@@ -13,14 +13,14 @@ def groups():
     cnt = Group.objects.count()
     result = []
     for grp in Group.objects.skip(skip).limit(take):
-        data = {'description': grp.description,
+        data = {'id': str(grp.id),
+                'description': grp.description,
                 'server': grp.server,
                 'source': grp.source,
                 "accidents": Accident.objects(group = grp).count()
                 }
         result.append(data)
     return jsonify({'count': cnt, 'result': result})
-
 
 @app.route('/api/v1.0/accidents', methods=['GET'])
 def accidents():
@@ -30,13 +30,14 @@ def accidents():
     cnt = Accident.objects.count()
     result = []
     for item in accident:
-        data = {'description': item.description,
+        data = {'id': str(item.id),
+                'description': item.description,
                 'server': item.server,
                 'source': item.source}
         result.append(data)
     return jsonify({'count': cnt, 'result': result})
 
-import editdistance
+import re
 @app.route('/api/v1.0/accidents', methods=['POST'])
 def create():
     if not request.json or not 'description' in request.json:
@@ -48,9 +49,10 @@ def create():
         source=request.json.get('source', ""),
         server=request.json.get('server', ""),
     )
+    desc = re.Sub('\b\d+\b', '', accident.description)
     for grp in Group.objects.all():
         if grp.server == accident.server:
-            d1 = fuzz.ratio(grp.description, accident.description)
+            d1 = fuzz.ratio(re.Sub('\b\d+\b', '', grp.description), desc)
             d2 = fuzz.ratio(grp.source, accident.source)
             if d1 > 80 and d2 > 95:
                 accident.group = grp
