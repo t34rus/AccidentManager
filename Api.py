@@ -6,6 +6,7 @@ from datetime import datetime
 from flask import request
 from Models import *
 
+
 @app.route('/api/v1.0/groups', methods=['GET'])
 def groups():
     skip = request.args.get("skip", 0, type=int)
@@ -17,10 +18,11 @@ def groups():
                 'description': grp.description,
                 'server': grp.server,
                 'source': grp.source,
-                "accidents": Accident.objects(group = grp).count()
+                "accidents": Accident.objects(group=grp).count()
                 }
         result.append(data)
     return jsonify({'count': cnt, 'result': result})
+
 
 @app.route('/api/v1.0/accidents', methods=['GET'])
 def accidents():
@@ -37,40 +39,48 @@ def accidents():
         result.append(data)
     return jsonify({'count': cnt, 'result': result})
 
-import re
+
 @app.route('/api/v1.0/accidents', methods=['POST'])
 def create():
     if not request.json or not 'description' in request.json:
-        abort(400)
+        abort()
     if not request.json or not 'description' in request.json:
-        abort(400)
+        abort()
     accident = Accident(
         description=request.json.get('description', ""),
         source=request.json.get('source', ""),
         server=request.json.get('server', ""),
     )
-    desc = re.Sub('\b\d+\b', '', accident.description)
-    for grp in Group.objects.all():
-        if grp.server == accident.server:
-            d1 = fuzz.ratio(re.Sub('\b\d+\b', '', grp.description), desc)
-            d2 = fuzz.ratio(grp.source, accident.source)
-            if d1 > 80 and d2 > 95:
-                accident.group = grp
-    if accident.group is None:
-        newgroup = Group(
-            description=accident.description,
-            source=accident.source,
-            server=accident.server,
-        )
-        newgroup.save()
-        accident.group = newgroup
     accident.save()
     return jsonify(request.json)
 
-def myFunc():
-    i = 1
-    print(i)
+
+def group():
+    import re
+    for accident in Accident.objects(group=None).all():
+        desc = re.sub('\b\d+\b', '', accident.description)
+        print(accident)
+        for grp in Group.objects.all():
+            if grp.server == accident.server:
+                d1 = fuzz.ratio(re.sub('\b\d+\b', '', grp.description), desc)
+                d2 = fuzz.ratio(grp.source, accident.source)
+                if d1 > 80 and d2 > 95:
+                    accident.group = grp
+                    accident.save()
+                    break
+        if accident.group is None:
+            print('create group')
+            newgroup = Group(
+                description=accident.description,
+                source=accident.source,
+                server=accident.server,
+            )
+            newgroup.save()
+            accident.group = newgroup
+            accident.save()
+
 
 from Scheduler import *
-scheduler.add_job(myFunc, 'interval', seconds=2)
+
+scheduler.add_job(group, 'interval', seconds=1)
 
