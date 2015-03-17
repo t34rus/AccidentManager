@@ -66,3 +66,11 @@ def create():
         accident.group = newgroup
     accident.save()
     return jsonify(request.json)
+
+def myFunc():
+    i = 1
+    print(i)
+
+from Scheduler import *
+scheduler.add_job(myFunc, 'interval', seconds=2)
+
