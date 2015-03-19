@@ -1,0 +1,1 @@
+MONGODB_SETTINGS = {'DB': "accident"}

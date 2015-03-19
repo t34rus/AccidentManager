@@ -82,5 +82,5 @@ def group():
 
 from Scheduler import *
 
-scheduler.add_job(group, 'interval', seconds=1)
+scheduler.add_job(group, 'interval', seconds=30)
 
