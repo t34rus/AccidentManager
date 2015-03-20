@@ -1,0 +1,53 @@
+sudo apt-get update
+sudo apt-get upgrade
+
+sudo apt-key adv --keyserver keyserver.ubuntu.com --recv 7F0CEB10
+echo "deb http://repo.mongodb.org/apt/debian "$(lsb_release -sc)"/mongodb-org/3.0 main" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.0.list
+sudo apt-get update
+sudo apt-get install -y mongodb-org
+sudo service mongod start
+
+sudo apt-get install apache2
+sudo apt-get install libapache2-mod-wsgi
+sudo a2enmod wsgi 
+
+git clone git://github.com/t34rus/AccidentManager.git
+cd AccidentManager
+
+sudo apt-get install python python-dev python-pip git
+sudo pip install virtualenv
+sudo virtualenv prod
+source prod/bin/activate
+sudo pip install Flask 
+sudo pip install Flask-Mongoengine
+sudo pip install APScheduler
+sudo pip install FuzzyWuzzy
+sudo pip install python-Leventshtein
+
+sudo nano /etc/apache2/sites-available/AccidentManager
+
+<VirtualHost *:80>
+		ServerName AccidentManager
+		ServerAdmin admin@AccidentManager.com
+		WSGIScriptAlias / /root/AccidentManager/AccidentManager.wsgi
+		<Directory /root/AccidentManager/>
+			Order allow,deny
+			Allow from all
+		</Directory>
+		ErrorLog ${APACHE_LOG_DIR}/error.log
+		LogLevel warn
+		CustomLog ${APACHE_LOG_DIR}/access.log combined
+</VirtualHost>
+
+sudo a2ensite AccidentManager
+
+cd /root/AccidentManager
+sudo nano AccidentManager.wsgi 
+
+#!/usr/bin/python
+import sys
+import logging
+logging.basicConfig(stream=sys.stderr)
+sys.path.insert(0,"/root/AccidentManager/")
+
+from AccidentManager import app as application
