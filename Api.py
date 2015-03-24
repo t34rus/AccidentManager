@@ -15,8 +15,8 @@ def groups():
     result = []
     for grp in Group.objects.skip(skip).limit(take):
         data = {'id': str(grp.id),
-                'description': grp.description,
-                'server': grp.server,
+                'caption': grp.caption,
+                'stacktrace': grp.stacktrace,
                 'source': grp.source,
                 "accidents": Accident.objects(group=grp).count()
                 }
@@ -40,47 +40,57 @@ def accidents():
     return jsonify({'count': cnt, 'result': result})
 
 
-@app.route('/api/v1.0/accidents', methods=['POST'])
-def create():
-    if not request.json or not 'description' in request.json:
-        abort()
-    if not request.json or not 'description' in request.json:
+@app.route('/api/v1.0/errors', methods=['POST'])
+def errors():
+    if not request.json or not 'caption' in request.json:
         abort()
     accident = Accident(
-        description=request.json.get('description', ""),
-        source=request.json.get('source', ""),
-        server=request.json.get('server', ""),
+        caption=request.json.get('caption', ""),
+        stacktrace=request.json.get('stacktrace', ""),
+        host=request.json.get('host', request.host),
+        address=request.json.get('address', request.remote_addr),
+        source=request.get_data()
     )
     accident.save()
     return jsonify(request.json)
 
+@app.route('/api/v1.0/emails', methods=['POST'])
+def emails():
+    if not request.json or not 'subject' in request.json:
+        abort()
+    accident = Accident(
+        caption=request.json.get('subject', ""),
+        stacktrace=request.json.get('body', ""),
+        address=request.json.get('sender', ""),
+        source=request.get_data()
+    )
+    accident.save()
+    return jsonify(request.json)
 
 def group():
     import re
     for accident in Accident.objects(group=None).all():
-        desc = re.sub('\b\d+\b', '', accident.description)
-        print(accident)
+        accidentTrace = re.sub('\b\d+\b', '\\\\', accident.stacktrace)
         for grp in Group.objects.all():
-            if grp.server == accident.server:
-                d1 = fuzz.ratio(re.sub('\b\d+\b', '', grp.description), desc)
-                d2 = fuzz.ratio(grp.source, accident.source)
-                if d1 > 80 and d2 > 95:
-                    accident.group = grp
-                    accident.save()
-                    break
+            grpTrace=re.sub('\b\d+\b', '\\\\', grp.stacktrace)
+            d1 = fuzz.ratio(grpTrace, accidentTrace)
+            d2 = fuzz.ratio(grp.caption, accident.caption)
+            if d1 > 80 and d2 > 95:
+                accident.group = grp
+                accident.save()
+                break
         if accident.group is None:
             print('create group')
             newgroup = Group(
-                description=accident.description,
-                source=accident.source,
-                server=accident.server,
+                caption=accident.caption,
+                stacktrace=accident.stacktrace,
+                source=accident.source
             )
             newgroup.save()
             accident.group = newgroup
             accident.save()
 
-
-from Scheduler import *
-
-scheduler.add_job(group, 'interval', seconds=30)
+group()
+#from Scheduler import *
+#scheduler.add_job(group, 'interval', seconds=1)
 

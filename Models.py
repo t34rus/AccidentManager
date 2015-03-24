@@ -4,9 +4,11 @@ from AccidentManager import db
 
 class Accident(db.Document):
     created_at = db.DateTimeField(default=datetime.now, required=True)
-    description = db.StringField(required=True)
-    source = db.StringField(required=True)
-    server = db.StringField(required=True)
+    caption = db.StringField(required=True)
+    stacktrace = db.StringField(required=False)
+    host = db.StringField(required=False)
+    address = db.StringField(required=False)
+    source = db.StringField(required=False)
     group = db.ReferenceField("Group",required=False)
 
 meta = {
@@ -17,9 +19,9 @@ meta = {
 
 class Group(db.Document):
     created_at = db.DateTimeField(default=datetime.now, required=True)
-    description = db.StringField(required=True)
-    source = db.StringField(required=True)
-    server = db.StringField(required=True)
+    caption = db.StringField(required=True)
+    stacktrace = db.StringField(required=False)
+    source = db.StringField(required=False)
 
 meta = {
         'allow_inheritance': True,

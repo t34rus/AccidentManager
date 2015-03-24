@@ -5,7 +5,7 @@ from apscheduler.executors.pool import ThreadPoolExecutor, ProcessPoolExecutor
 
 jobstores = {'mongo': MongoDBJobStore()}
 executors = {'default': ThreadPoolExecutor(50)}
-job_defaults = {'coalesce': False,'max_instances': 10}
+job_defaults = {'coalesce': False,'max_instances': 1}
 scheduler = BackgroundScheduler(
     jobstores=jobstores,
     executors=executors,
