@@ -1,20 +1,24 @@
-sudo apt-get update
-sudo apt-get upgrade
+sudo apt-get -y update
+sudo apt-get -y upgrade
 
 sudo apt-key adv --keyserver keyserver.ubuntu.com --recv 7F0CEB10
 echo "deb http://repo.mongodb.org/apt/debian "$(lsb_release -sc)"/mongodb-org/3.0 main" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.0.list
 sudo apt-get update
 sudo apt-get install -y mongodb-org
+
 sudo service mongod start
 
-sudo apt-get install apache2
-sudo apt-get install libapache2-mod-wsgi
-sudo a2enmod wsgi 
+sudo apt-get -y install apache2
+sudo apt-get -y install libapache2-mod-wsgi
 
-git clone git://github.com/t34rus/AccidentManager.git
+sudo a2enmod wsgi
+
+cd /var/www 
+sudo mkdir AccidentManager
 cd AccidentManager
+git clone git://github.com/t34rus/AccidentManager.git
 
-sudo apt-get install python python-dev python-pip git
+sudo apt-get -y install python python-dev python-pip
 sudo pip install virtualenv
 sudo virtualenv prod
 source prod/bin/activate
@@ -26,11 +30,10 @@ sudo pip install python-Leventshtein
 
 sudo nano /etc/apache2/sites-available/AccidentManager
 
-<VirtualHost *:80>
-		ServerName AccidentManager
-		ServerAdmin admin@AccidentManager.com
-		WSGIScriptAlias / /root/AccidentManager/AccidentManager.wsgi
-		<Directory /root/AccidentManager/>
+Listen *:88
+<VirtualHost *:88>
+		WSGIScriptAlias / /var/www/AccidentManager/AccidentManager.wsgi
+		<Directory /var/www/AccidentManager/AccidentManager/>
 			Order allow,deny
 			Allow from all
 		</Directory>
@@ -41,13 +44,15 @@ sudo nano /etc/apache2/sites-available/AccidentManager
 
 sudo a2ensite AccidentManager
 
-cd /root/AccidentManager
+sudo service apache2 restart 
+
+cd /var/www/AccidentManager
 sudo nano AccidentManager.wsgi 
 
 #!/usr/bin/python
 import sys
 import logging
 logging.basicConfig(stream=sys.stderr)
-sys.path.insert(0,"/root/AccidentManager/")
+sys.path.insert(0,"/var/www/AccidentManager/AccidentManager/")
 
 from AccidentManager import app as application
