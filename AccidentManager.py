@@ -9,6 +9,10 @@ db = MongoEngine(app)
 def index():
     return "Test"
 
+@app.errorhandler(500)
+def handle_invalid_usage(error):
+    return error.args[0]
+
 from Api import *
 from Mail import *
 #getmails()
