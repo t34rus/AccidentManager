@@ -2,18 +2,20 @@ from os import abort
 from fuzzywuzzy import fuzz
 from AccidentManager import app
 from flask import Flask, jsonify
-from datetime import datetime
 from flask import request
 from Models import *
 
 
 @app.route('/api/v1.0/groups', methods=['GET'])
 def groups():
+    from datetime import datetime,timedelta
     skip = request.args.get("skip", 0, type=int)
     take = request.args.get("take", 10, type=int)
-    cnt = Group.objects.count()
+    delta = request.args.get("timedelta", 10, type=int)
+    grps = Group.objects(modified_at__gte=datetime.now() - timedelta(minutes = delta))
+    cnt = grps.count()
     result = []
-    for grp in Group.objects.skip(skip).limit(take):
+    for grp in grps.skip(skip).limit(take):
         data = {'id': str(grp.id),
                 'caption': grp.caption,
                 'stacktrace': grp.stacktrace,
@@ -95,5 +97,5 @@ def group():
 
 #group()
 from Scheduler import *
-scheduler.add_job(group, 'interval', seconds=20)
+scheduler.add_job(group, 'interval', seconds=30)
 
