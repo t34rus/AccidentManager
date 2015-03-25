@@ -18,8 +18,9 @@ def groups():
                 'caption': grp.caption,
                 'stacktrace': grp.stacktrace,
                 'source': grp.source,
-                "accidents": Accident.objects(group=grp).count()
-                }
+                'created_at':grp.created_at,
+                'modified_at':grp.modified_at,
+                "accidents": Accident.objects(group=grp).count()}
         result.append(data)
     return jsonify({'count': cnt, 'result': result})
 
@@ -78,6 +79,8 @@ def group():
             if d1 > 80 and d2 > 95:
                 accident.group = grp
                 accident.save()
+                grp.modified_at = datetime.now
+                grp.save()
                 break
         if accident.group is None:
             print('create group')
@@ -92,5 +95,5 @@ def group():
 
 #group()
 from Scheduler import *
-scheduler.add_job(group, 'interval', seconds=30)
+scheduler.add_job(group, 'interval', seconds=20)
 

@@ -19,6 +19,7 @@ meta = {
 
 class Group(db.Document):
     created_at = db.DateTimeField(default=datetime.now, required=True)
+    modified_at = db.DateTimeField(default=datetime.now, required=True)
     caption = db.StringField(required=True)
     stacktrace = db.StringField(required=False)
     source = db.StringField(required=False)
