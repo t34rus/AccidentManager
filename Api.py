@@ -23,7 +23,7 @@ def groups():
                 'source': first.source,
                 'environment': '',
                 'instances': '',
-                'version': '',
+                'version': first.version,
                 'project': grp.project,
                 'created_at':grp.created_at,
                 'modified_at':grp.modified_at,
