@@ -9,11 +9,13 @@ class Accident(db.Document):
     host = db.StringField(required=False)
     address = db.StringField(required=False)
     source = db.StringField(required=False)
+    project = db.StringField(required=False)
+    version = db.StringField(required=False)
     group = db.ReferenceField("Group",required=False)
 
 meta = {
         'allow_inheritance': True,
-        'indexes': ['-created_at', 'is_processed'],
+        'indexes': ['-created_at'],
         'ordering': ['-created_at']
     }
 
@@ -22,10 +24,10 @@ class Group(db.Document):
     modified_at = db.DateTimeField(default=datetime.now, required=True)
     caption = db.StringField(required=True)
     stacktrace = db.StringField(required=False)
-    source = db.StringField(required=False)
+    project = db.StringField(required=False)
 
 meta = {
         'allow_inheritance': True,
-        'indexes': ['-created_at', 'is_processed'],
+        'indexes': ['-created_at'],
         'ordering': ['-created_at']
     }

@@ -14,8 +14,7 @@ def handle_invalid_usage(error):
     return error.args[0]
 
 from Api import *
-from Mail import *
-#getmails()
+from Scheduler import *
 
 if __name__ == '__main__':
     app.debug = True

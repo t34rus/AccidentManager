@@ -10,16 +10,21 @@ from Models import *
 def groups():
     from datetime import datetime,timedelta
     skip = request.args.get("skip", 0, type=int)
-    take = request.args.get("take", 10, type=int)
+    take = request.args.get("take", 100, type=int)
     delta = request.args.get("timedelta", 10, type=int)
     grps = Group.objects(modified_at__gte=datetime.now() - timedelta(minutes = delta))
     cnt = grps.count()
     result = []
     for grp in grps.skip(skip).limit(take):
+        first = Accident.objects(group=grp).first()
         data = {'id': str(grp.id),
                 'caption': grp.caption,
                 'stacktrace': grp.stacktrace,
-                'source': grp.source,
+                'source': first.source,
+                'environment': '',
+                'instances': '',
+                'version': '',
+                'project': grp.project,
                 'created_at':grp.created_at,
                 'modified_at':grp.modified_at,
                 "accidents": Accident.objects(group=grp).count()}
@@ -36,9 +41,10 @@ def accidents():
     result = []
     for item in accident:
         data = {'id': str(item.id),
-                'description': item.description,
-                'server': item.server,
-                'source': item.source}
+                'caption': item.caption,
+                'stacktrace': item.stacktrace,
+                'address': item.address,
+                'project': item.project}
         result.append(data)
     return jsonify({'count': cnt, 'result': result})
 
@@ -52,7 +58,9 @@ def errors():
         stacktrace=request.json.get('stacktrace', ""),
         host=request.json.get('host', request.host),
         address=request.json.get('address', request.remote_addr),
-        source=request.get_data()
+        source=request.json.get('source', ""),
+        project=request.json.get('project', ""),
+        version=request.json.get('version', ""),
     )
     accident.save()
     return jsonify(request.json)
@@ -65,7 +73,7 @@ def emails():
         caption=request.json.get('subject', ""),
         stacktrace=request.json.get('body', ""),
         address=request.json.get('sender', ""),
-        source=request.get_data()
+        project=request.json.get('project', ""),
     )
     accident.save()
     return jsonify(request.json)
@@ -78,18 +86,17 @@ def group():
             grpTrace=re.sub('\b\d+\b', '\\\\', grp.stacktrace)
             d1 = fuzz.ratio(grpTrace, accidentTrace)
             d2 = fuzz.ratio(grp.caption, accident.caption)
-            if d1 > 80 and d2 > 95:
+            if d1 > 80 and d2 > 95 and grp.project == accident.project:
                 accident.group = grp
                 accident.save()
                 grp.modified_at = datetime.now
                 grp.save()
                 break
         if accident.group is None:
-            print('create group')
             newgroup = Group(
                 caption=accident.caption,
                 stacktrace=accident.stacktrace,
-                source=accident.source
+                project=accident.project
             )
             newgroup.save()
             accident.group = newgroup
