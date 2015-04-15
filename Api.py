@@ -88,11 +88,11 @@ def group():
     for accident in Accident.objects(group=None).all():
         accident_caption = re.sub('\b\d+\b', '\\\\', accident.caption)
         for grp in Group.objects.all():
-            if grp.host.lower() == accident.host.lower() and \
-               grp.address.lower() == accident.address.lower() and \
-               grp.source.lower() == accident.source.lower() and \
-               grp.project.lower() == accident.project.lower() and \
-               grp.version.lower() == accident.version.lower():
+            if grp.host == accident.host and \
+               grp.address == accident.address and \
+               grp.source == accident.source and \
+               grp.project == accident.project and \
+               grp.version == accident.version:
                 grp_caption=re.sub('\b\d+\b', '\\\\', grp.caption)
                 ratio = fuzz.ratio(grp_caption, accident_caption)
                 if ratio > 95:
@@ -115,5 +115,5 @@ def group():
             accident.save()
 
 from Scheduler import *
-scheduler.add_job(group, 'interval', seconds=30)
+scheduler.add_job(group, 'interval', seconds=3)
 
