@@ -12,22 +12,25 @@ def groups():
     skip = request.args.get("skip", 0, type=int)
     take = request.args.get("take", 100, type=int)
     delta = request.args.get("timedelta", 10, type=int)
+    delta = request.args.get("timedelta", 10, type=int)
     grps = Group.objects(modified_at__gte=datetime.now() - timedelta(minutes = delta))
     cnt = grps.count()
     result = []
     for grp in grps.skip(skip).limit(take):
-        first = Accident.objects(group=grp).first()
+        last = Accident.objects(group=grp).last()
+        last_stacktrace = ''
+        if (last is not None):
+            last_stacktrace = last.stacktrace
         data = {'id': str(grp.id),
                 'caption': grp.caption,
-                'stacktrace': grp.stacktrace,
-                'source': first.source,
-                'environment': '',
-                'instances': '',
-                'version': first.version,
+                'stacktrace': last_stacktrace,
+                'source': grp.source,
+                'environment': {'hostname': grp.host,'address': grp.address},
+                'version': grp.version,
                 'project': grp.project,
                 'created_at':grp.created_at,
                 'modified_at':grp.modified_at,
-                "accidents": Accident.objects(group=grp).count()}
+                "instances": Accident.objects(group=grp).count()}
         result.append(data)
     return jsonify({'count': cnt, 'result': result})
 
@@ -35,7 +38,7 @@ def groups():
 @app.route('/api/v1.0/accidents', methods=['GET'])
 def accidents():
     skip = request.args.get("skip", 0, type=int)
-    take = request.args.get("take", 10, type=int)
+    take = request.args.get("take", 100, type=int)
     accident = Accident.objects.skip(skip).limit(take)
     cnt = Accident.objects.count()
     result = []
@@ -46,7 +49,7 @@ def accidents():
                 'address': item.address,
                 'project': item.project}
         result.append(data)
-    return jsonify({'count': cnt, 'result': result})
+    return jsonify({'count': cnt, 'result': accident})
 
 
 @app.route('/api/v1.0/errors', methods=['POST'])
@@ -54,13 +57,14 @@ def errors():
     if not request.json or not 'caption' in request.json:
         abort()
     accident = Accident(
-        caption=request.json.get('caption', ""),
-        stacktrace=request.json.get('stacktrace', ""),
-        host=request.json.get('host', request.host),
-        address=request.json.get('address', request.remote_addr),
-        source=request.json.get('source', ""),
-        project=request.json.get('project', ""),
-        version=request.json.get('version', ""),
+        caption=request.json.get('caption', '').strip(),
+        stacktrace=request.json.get('stacktrace', '').strip(),
+        host=request.json.get('host', request.host).strip(),
+        address=request.json.get('address', request.remote_addr).strip(),
+        source=request.json.get('source', '').strip(),
+        project=request.json.get('project', '').strip(),
+        version=request.json.get('version', '').strip(),
+        request=request.get_data()
     )
     accident.save()
     return jsonify(request.json)
@@ -70,10 +74,11 @@ def emails():
     if not request.json or not 'subject' in request.json:
         abort()
     accident = Accident(
-        caption=request.json.get('subject', ""),
-        stacktrace=request.json.get('body', ""),
-        address=request.json.get('sender', ""),
-        project=request.json.get('project', ""),
+        caption=request.json.get('subject', "").strip(),
+        stacktrace=request.json.get('body', "").strip(),
+        address=request.json.get('sender', "").strip(),
+        project=request.json.get('project', "").strip(),
+        request=request.get_data()
     )
     accident.save()
     return jsonify(request.json)
@@ -81,28 +86,34 @@ def emails():
 def group():
     import re
     for accident in Accident.objects(group=None).all():
-        accidentTrace = re.sub('\b\d+\b', '\\\\', accident.stacktrace)
+        accident_caption = re.sub('\b\d+\b', '\\\\', accident.caption)
         for grp in Group.objects.all():
-            grpTrace=re.sub('\b\d+\b', '\\\\', grp.stacktrace)
-            d1 = fuzz.ratio(grpTrace, accidentTrace)
-            d2 = fuzz.ratio(grp.caption, accident.caption)
-            if d1 > 80 and d2 > 95 and grp.project == accident.project:
-                accident.group = grp
-                accident.save()
-                grp.modified_at = datetime.now
-                grp.save()
+            if grp.host.lower() == accident.host.lower() and \
+               grp.address.lower() == accident.address.lower() and \
+               grp.source.lower() == accident.source.lower() and \
+               grp.project.lower() == accident.project.lower() and \
+               grp.version.lower() == accident.version.lower():
+                grp_caption=re.sub('\b\d+\b', '\\\\', grp.caption)
+                ratio = fuzz.ratio(grp_caption, accident_caption)
+                if ratio > 95:
+                    accident.group = grp
+                    accident.save()
+                    grp.modified_at = datetime.now
+                    grp.save()
                 break
         if accident.group is None:
             newgroup = Group(
                 caption=accident.caption,
-                stacktrace=accident.stacktrace,
-                project=accident.project
+                host=accident.host,
+                address=accident.address,
+                source=accident.source,
+                project=accident.project,
+                version=accident.version
             )
             newgroup.save()
             accident.group = newgroup
             accident.save()
 
-#group()
 from Scheduler import *
 scheduler.add_job(group, 'interval', seconds=30)
 
