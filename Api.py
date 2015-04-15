@@ -14,9 +14,8 @@ def groups():
     delta = request.args.get("timedelta", 10, type=int)
     req_project = request.args.get("project", None, type=str)
     grps = Group.objects(modified_at__gte=datetime.now() - timedelta(minutes = delta))
-    if (req_project is not None):
+    if req_project is not None:
         grps = grps(project=req_project)
-    cnt = grps.count()
     result = []
     for grp in grps.skip(skip).limit(take):
         last = Accident.objects(group=grp).order_by('-created_at').first()
@@ -34,7 +33,7 @@ def groups():
                 'modified_at':grp.modified_at,
                 "instances": Accident.objects(group=grp).count()}
         result.append(data)
-    return jsonify({'count': cnt, 'result': result})
+    return jsonify({'count': grps.count(), 'result': result})
 
 
 @app.route('/api/v1.0/accidents', methods=['GET'])
