@@ -17,7 +17,7 @@ def groups():
     cnt = grps.count()
     result = []
     for grp in grps.skip(skip).limit(take):
-        last = Accident.objects(group=grp).last()
+        last = Accident.objects(group=grp).order_by('-created_at').first()
         last_stacktrace = ''
         if (last is not None):
             last_stacktrace = last.stacktrace
