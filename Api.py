@@ -12,8 +12,10 @@ def groups():
     skip = request.args.get("skip", 0, type=int)
     take = request.args.get("take", 100, type=int)
     delta = request.args.get("timedelta", 10, type=int)
-    delta = request.args.get("timedelta", 10, type=int)
+    req_project = request.args.get("project", None, type=str)
     grps = Group.objects(modified_at__gte=datetime.now() - timedelta(minutes = delta))
+    if (req_project is not None):
+        grps = grps(project=req_project)
     cnt = grps.count()
     result = []
     for grp in grps.skip(skip).limit(take):
@@ -115,5 +117,5 @@ def group():
             accident.save()
 
 from Scheduler import *
-scheduler.add_job(group, 'interval', seconds=3)
+scheduler.add_job(group, 'interval', seconds=10)
 
