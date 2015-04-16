@@ -86,15 +86,16 @@ def emails():
 
 def group():
     import re
-    #re.sub('\b\d+\b', '\\\\',
     for accident in Accident.objects(group=None):
         accident_caption = accident.caption
+        re.sub('\d+', '', accident_caption)
         for grp in Group.objects(project=accident.project):
             if grp.host == accident.host and \
                grp.address == accident.address and \
                grp.source == accident.source and \
                grp.version == accident.version:
-                grp_caption=grp.caption
+                grp_caption = grp.caption
+                re.sub('\d+', '', grp_caption)
                 ratio = fuzz.ratio(grp_caption, accident_caption)
                 if ratio > 95:
                     accident.group = grp
