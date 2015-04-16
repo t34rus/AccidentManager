@@ -88,14 +88,14 @@ def group():
     import re
     for accident in Accident.objects(group=None):
         accident_caption = accident.caption
-        re.sub('\d+', '', accident_caption)
+        accident_caption = re.sub('\d+', '', accident_caption)
         for grp in Group.objects(project=accident.project):
             if grp.host == accident.host and \
                grp.address == accident.address and \
                grp.source == accident.source and \
                grp.version == accident.version:
                 grp_caption = grp.caption
-                re.sub('\d+', '', grp_caption)
+                grp_caption = re.sub('\d+', '', grp_caption)
                 ratio = fuzz.ratio(grp_caption, accident_caption)
                 if ratio > 95:
                     accident.group = grp
@@ -104,7 +104,7 @@ def group():
                     grp.save()
                     break
         if accident.group is None:
-            newgroup = Group(
+            new_group = Group(
                 caption=accident.caption,
                 host=accident.host,
                 address=accident.address,
@@ -112,8 +112,8 @@ def group():
                 project=accident.project,
                 version=accident.version
             )
-            newgroup.save()
-            accident.group = newgroup
+            new_group.save()
+            accident.group = new_group
             accident.save()
 
 from Scheduler import *
