@@ -101,7 +101,7 @@ def group():
                     accident.save()
                     grp.modified_at = datetime.now
                     grp.save()
-                break
+                    break
         if accident.group is None:
             newgroup = Group(
                 caption=accident.caption,
