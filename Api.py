@@ -6,6 +6,7 @@ from flask import request
 from Models import *
 
 
+
 from datetime import timedelta
 from flask import make_response, request, current_app
 from functools import update_wrapper
@@ -101,8 +102,27 @@ def accidents():
     return jsonify({'count': cnt, 'result': accident})
 
 
+@app.route('/sentry/api/1/store', methods=['POST'])
+@crossdomain(origin='*')
+def sentry():
+    import json
+    import urllib
+    sentry_data = urllib.parse.unquote(request.values['sentry_data'])
+    sentry_data_json = json.loads(sentry_data)
+    exception = sentry_data_json['exception']
+    stacktrace = json.dumps(sentry_data_json['stacktrace'])
+    project = request.values['sentry_key']
+
+    accident = Accident(
+        caption=exception['value'].strip(),
+        stacktrace=stacktrace,
+        project=project.strip(),
+        request=request.get_data()
+    )
+    accident.save()
+    return jsonify(accident)
+
 @app.route('/1/errors', methods=['POST'])
-@app.route('/1/errors/store', methods=['POST'])
 @crossdomain(origin='*')
 def errors():
     if not request.json or not 'caption' in request.json:
