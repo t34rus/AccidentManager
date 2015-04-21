@@ -6,7 +6,7 @@ from flask import request
 from Models import *
 
 
-@app.route('/api/v1.0/groups', methods=['GET'])
+@app.route('/1/groups', methods=['GET'])
 def groups():
     from datetime import datetime,timedelta
     skip = request.args.get("skip", 0, type=int)
@@ -36,7 +36,7 @@ def groups():
     return jsonify({'count': grps.count(), 'result': result})
 
 
-@app.route('/api/v1.0/accidents', methods=['GET'])
+@app.route('/1/accidents', methods=['GET'])
 def accidents():
     skip = request.args.get("skip", 0, type=int)
     take = request.args.get("take", 100, type=int)
@@ -53,7 +53,7 @@ def accidents():
     return jsonify({'count': cnt, 'result': accident})
 
 
-@app.route('/api/v1.0/errors', methods=['POST'])
+@app.route('/1/errors', methods=['POST'])
 def errors():
     if not request.json or not 'caption' in request.json:
         abort()
@@ -70,7 +70,7 @@ def errors():
     accident.save()
     return jsonify(request.json)
 
-@app.route('/api/v1.0/emails', methods=['POST'])
+@app.route('/1/emails', methods=['POST'])
 def emails():
     if not request.json or not 'subject' in request.json:
         abort()
