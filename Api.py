@@ -102,6 +102,7 @@ def accidents():
 
 
 @app.route('/1/errors', methods=['POST'])
+@app.route('/1/errors/store', methods=['POST'])
 @crossdomain(origin='*')
 def errors():
     if not request.json or not 'caption' in request.json:
