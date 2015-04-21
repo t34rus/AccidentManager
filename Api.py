@@ -85,6 +85,7 @@ def accidents():
 
 
 @app.route('/sentry/api/1/store', methods=['POST','GET'])
+@app.route('/sentry/api/1/store/', methods=['POST','GET'])
 @crossdomain(origin='*')
 def sentry():
     import json
