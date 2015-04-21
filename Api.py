@@ -81,7 +81,6 @@ def accidents():
     return jsonify({'count': cnt, 'result': accident})
 
 
-@app.route('/sentry/api/1/store', methods=['POST','GET'])
 @app.route('/sentry/api/1/store/', methods=['POST','GET'])
 @crossdomain(origin='*')
 def sentry():
