@@ -85,8 +85,8 @@ def accidents():
 @crossdomain(origin='*')
 def sentry():
     import json
-    import urllib3
-    sentry_data = urllib3.parse.unquote(request.values['sentry_data'])
+    import urllib.parse
+    sentry_data = urllib.parse.unquote(request.values['sentry_data'])
     sentry_data_json = json.loads(sentry_data)
     exception = sentry_data_json['exception']
     stacktrace = json.dumps(sentry_data_json['stacktrace'])
