@@ -4,9 +4,6 @@ from AccidentManager import app
 from flask import Flask, jsonify
 from flask import request
 from Models import *
-
-
-
 from datetime import timedelta
 from flask import make_response, request, current_app
 from functools import update_wrapper
@@ -89,8 +86,8 @@ def accidents():
 @crossdomain(origin='*')
 def sentry():
     import json
-    import urllib
-    sentry_data = urllib.parse.unquote(request.values['sentry_data'])
+    import urllib3
+    sentry_data = urllib3.parse.unquote(request.values['sentry_data'])
     sentry_data_json = json.loads(sentry_data)
     exception = sentry_data_json['exception']
     stacktrace = json.dumps(sentry_data_json['stacktrace'])
