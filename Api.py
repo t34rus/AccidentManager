@@ -15,22 +15,6 @@ from functools import update_wrapper
 def crossdomain(origin=None, methods=None, headers=None,
                 max_age=21600, attach_to_all=True,
                 automatic_options=True):
-    if methods is not None:
-        methods = ', '.join(sorted(x.upper() for x in methods))
-    if headers is not None and not isinstance(headers, str):
-        headers = ', '.join(x.upper() for x in headers)
-    if not isinstance(origin, str):
-        origin = ', '.join(origin)
-    if isinstance(max_age, timedelta):
-        max_age = max_age.total_seconds()
-
-    def get_methods():
-        if methods is not None:
-            return methods
-
-        options_resp = current_app.make_default_options_response()
-        return options_resp.headers['allow']
-
     def decorator(f):
         def wrapped_function(*args, **kwargs):
             if automatic_options and request.method == 'OPTIONS':
@@ -42,11 +26,9 @@ def crossdomain(origin=None, methods=None, headers=None,
 
             h = resp.headers
 
-            h['Access-Control-Allow-Origin'] = origin
-            h['Access-Control-Allow-Methods'] = get_methods()
-            h['Access-Control-Max-Age'] = str(max_age)
-            if headers is not None:
-                h['Access-Control-Allow-Headers'] = headers
+            h['Access-Control-Allow-Origin'] = '*'
+            h['Access-Control-Allow-Methods'] = '*'
+            h['Access-Control-Allow-Headers'] = '*'
             return resp
 
         f.provide_automatic_options = False
@@ -111,16 +93,20 @@ def sentry():
     sentry_data_json = json.loads(sentry_data)
     exception = sentry_data_json['exception']
     stacktrace = json.dumps(sentry_data_json['stacktrace'])
+    logger = sentry_data_json['logger']
+    release = sentry_data_json['release']
     project = request.values['sentry_key']
 
     accident = Accident(
         caption=exception['value'].strip(),
         stacktrace=stacktrace,
+        source=logger.strip(),
+        version=release.strip(),
         project=project.strip(),
         request=request.get_data()
     )
     accident.save()
-    return jsonify(accident)
+    return jsonify(sentry_data_json)
 
 @app.route('/1/errors', methods=['POST'])
 @crossdomain(origin='*')
