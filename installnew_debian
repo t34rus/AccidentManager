@@ -51,7 +51,7 @@ sudo pip3 install Flask
 sudo pip3 install Flask-Mongoengine
 sudo pip3 install APScheduler
 sudo pip3 install FuzzyWuzzy
-sudo pip3 install python-Leventshtein
+sudo pip3 install python3-Leventshtein
 sudo pip3 install urllib3
 
 sudo nano /etc/apache2/sites-available/AccidentManager

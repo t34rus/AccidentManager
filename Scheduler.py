@@ -11,5 +11,5 @@ scheduler = BackgroundScheduler(
     executors=executors,
     job_defaults=job_defaults,
     timezone=utc)
-print(scheduler)
+
 scheduler.start()
