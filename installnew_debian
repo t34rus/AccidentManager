@@ -1,33 +1,58 @@
 sudo apt-get -y update
 sudo apt-get -y upgrade
 
+#debian
 sudo apt-key adv --keyserver keyserver.ubuntu.com --recv 7F0CEB10
 echo "deb http://repo.mongodb.org/apt/debian "$(lsb_release -sc)"/mongodb-org/3.0 main" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.0.list
 sudo apt-get update
 sudo apt-get install -y mongodb-org
 
+#unubtu
+sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 7F0CEB10
+echo "deb http://repo.mongodb.org/apt/ubuntu "$(lsb_release -sc)"/mongodb-org/3.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.0.list
+sudo apt-get update
+sudo apt-get install -y mongodb-org
+
+#check
 sudo service mongod start
 
-sudo apt-get -y install apache2
-sudo apt-get -y install libapache2-mod-wsgi
 
+sudo apt-get install libapache2-mod-wsgi python-dev
+
+
+sudo apt-get -y install apache2
+sudo apt-get -y install libapache2-mod-wsgi-py3
+
+#check
 sudo a2enmod wsgi
 
-cd /var/www 
+sudo apt-get -y install git
+sudo apt-get -y install mc
+
+cd /var/www
 sudo mkdir AccidentManager
 cd AccidentManager
 git clone git://github.com/t34rus/AccidentManager.git
 
-sudo apt-get -y install python python-dev python-pip
-sudo pip install virtualenv
+
+sudo apt-get -y install python3 python3-pip python-virtualenv
+
+#sudo apt-get -y install python3 python3-dev python3-pip
+
+sudo pip3 install virtualenv
 sudo virtualenv prod
+
 source prod/bin/activate
-sudo pip install Flask 
-sudo pip install Flask-Mongoengine
-sudo pip install APScheduler
-sudo pip install FuzzyWuzzy
-sudo pip install python-Leventshtein
-sudo pip install urllib3
+
+#check
+sudo python AccidentManager.py
+
+sudo pip3 install Flask
+sudo pip3 install Flask-Mongoengine
+sudo pip3 install APScheduler
+sudo pip3 install FuzzyWuzzy
+sudo pip3 install python-Leventshtein
+sudo pip3 install urllib3
 
 sudo nano /etc/apache2/sites-available/AccidentManager
 

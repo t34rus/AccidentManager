@@ -1,1 +1,1 @@
-MONGODB_SETTINGS = {'DB': "accident"}
+MONGODB_SETTINGS = {'db': "accident"}
