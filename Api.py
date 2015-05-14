@@ -102,7 +102,7 @@ def sentry():
         request=request.get_data()
     )
     accident.save()
-    return jsonify(sentry_data_json)
+    return jsonify({'accident': accident})
 
 @app.route('/1/errors', methods=['POST'])
 @crossdomain(origin='*')
@@ -120,7 +120,8 @@ def errors():
         request=request.get_data()
     )
     accident.save()
-    return jsonify(request.json)
+    return jsonify({'accident': accident})
+
 
 @app.route('/1/emails', methods=['POST'])
 @crossdomain(origin='*')
@@ -135,7 +136,26 @@ def emails():
         request=request.get_data()
     )
     accident.save()
-    return jsonify(request.json)
+    return jsonify({'accident': accident})
+
+
+@app.route('/newrelic/1/<project_key>', methods=['POST'])
+@crossdomain(origin='*')
+def newrelic(project_key):
+    import json
+    if not request.json or not 'short_description' in request.json:
+        abort()
+    accident = Accident(
+        caption=request.json.get('short_description', "").strip(),
+        stacktrace=json.dumps(request.json),
+        address=request.json.get('alert_url', "").strip(),
+        host=request.json.get('application_name', "").strip(),
+        project=project_key.strip(),
+        request=request.get_data()
+    )
+    accident.save()
+    return jsonify({'accident': accident})
+
 
 def group():
     import re
@@ -170,6 +190,10 @@ def group():
             accident.save()
 
 def deleteOld():
+    #remove ald accident
+    for acdt in Accident.objects(created_at__lte=datetime.now() - timedelta(days = 21)):
+        acdt.delete()
+    #remove group without new accident
     for grp in Group.objects(modified_at__lte=datetime.now() - timedelta(days = 3)):
         for acdt in Accident.objects(group=grp):
             acdt.delete()
