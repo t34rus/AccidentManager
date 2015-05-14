@@ -44,6 +44,8 @@ sudo virtualenv prod
 
 source prod/bin/activate
 
+pip install pymongo==2.8
+
 #check
 sudo python AccidentManager.py
 
@@ -69,6 +71,14 @@ Listen *:88
 </VirtualHost>
 
 sudo a2ensite AccidentManager
+
+Exception ignored in: <bound method Cursor.__del__ of <pymongo.cursor.Cursor object at 0x7f7b36f87be0>>
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.4/dist-packages/pymongo/cursor.py", line 210, in __del__
+    if self.__id and not self.__killed:
+AttributeError: 'Cursor' object has no attribute '_Cursor__id'
+
+
 
 sudo service apache2 restart 
 
