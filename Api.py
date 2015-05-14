@@ -41,8 +41,7 @@ def groups():
     delta = request.args.get("timedelta", 10, type=int)
     req_project = request.args.get("project", None, type=str)
     grps = Group.objects(modified_at__gte=datetime.now() - timedelta(minutes = delta))
-    if req_project is not None:
-        grps = grps(project=req_project)
+    grps = grps(project=req_project)
     result = []
     for grp in grps.skip(skip).limit(take):
         last = Accident.objects(group=grp).order_by('-created_at').first()
