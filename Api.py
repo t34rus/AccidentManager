@@ -169,6 +169,13 @@ def group():
             accident.group = new_group
             accident.save()
 
+def deleteOld():
+    for grp in Group.objects(modified_at__lte=datetime.now() - timedelta(days = 3)):
+        for acdt in Accident.objects(group=grp):
+            acdt.delete()
+        grp.delete()
+
 from Scheduler import *
-scheduler.add_job(group, 'interval', seconds=10)
+scheduler.add_job(group, 'interval', seconds=15)
+scheduler.add_job(deleteOld, 'interval', minutes=15)
 
