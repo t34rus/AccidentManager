@@ -67,17 +67,17 @@ def groups():
 def accidents():
     skip = request.args.get("skip", 0, type=int)
     take = request.args.get("take", 100, type=int)
-    accident = Accident.objects.skip(skip).limit(take)
-    cnt = Accident.objects.count()
+    req_project = request.args.get("project", None, type=str)
+    accident = Accident.objects(project=req_project)
     result = []
-    for item in accident:
+    for item in accident.skip(skip).limit(take):
         data = {'id': str(item.id),
                 'caption': item.caption,
                 'stacktrace': item.stacktrace,
                 'address': item.address,
                 'project': item.project}
         result.append(data)
-    return jsonify({'count': cnt, 'result': accident})
+    return jsonify({'count': accident.count(), 'result': accident})
 
 
 @app.route('/sentry/api/1/store/', methods=['POST','GET'])
